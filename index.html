@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/x-icon" href="emoji-heart-symbol-clip-art-png-favpng-EXJUyjYbR68FQ24wCjFrfgqF1-removebg-preview.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JAMAICA</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --rose:#c8576a;--rose-light:#e8a0ac;--rose-pale:#f5d6db;
+    --gold:#c9a96e;--cream:#fdf6f0;--dark:#0e0608;
+    --dark2:#1a0c10;--dark3:#261218;
+  }
+  html{scroll-behavior:smooth}
+  body{background:var(--dark);color:var(--cream);font-family:'Jost',sans-serif;min-height:100vh;overflow-x:hidden}
+
+  /* ── STARS ── */
+  #stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+  /* ── PAGES ── */
+  .page{display:none;position:relative;z-index:1;min-height:100vh;width:100%}
+  .page.active{display:block}
+
+  /* ══════════════════════════════
+     LOCK PAGE
+  ══════════════════════════════ */
+  #lock-page{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    min-height:100vh;padding:2rem;text-align:center
+  }
+  #lock-page.active{display:flex}
+
+  .lock-top{margin-bottom:3rem}
+  .lock-icon{font-size:2.8rem;margin-bottom:1.2rem;animation:float 4s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
+  .lock-intro{
+    font-family:'Cormorant Garamond',serif;
+    font-size:0.85rem;font-weight:300;letter-spacing:0.22em;
+    text-transform:uppercase;color:var(--rose-light);margin-bottom:0.8rem
+  }
+  .lock-title{
+    font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,5vw,2.8rem);
+    font-weight:300;font-style:italic;color:var(--cream);line-height:1.3;
+    margin-bottom:2.5rem
+  }
+
+  /* Lyric fill-in-the-blank */
+  .lyric-card{
+    background:rgba(255,255,255,0.03);
+    border:1px solid rgba(200,87,106,0.2);
+    border-radius:20px;padding:2rem 2.5rem;
+    max-width:520px;width:100%;margin:0 auto 2rem
+  }
+  .lyric-hint{
+    font-size:0.72rem;letter-spacing:0.2em;text-transform:uppercase;
+    color:var(--rose);margin-bottom:1.2rem
+  }
+  .lyric-line{
+    font-family:'Cormorant Garamond',serif;font-size:clamp(1rem,3vw,1.25rem);
+    font-style:italic;color:#c8576a;line-height:2;
+    display:flex;align-items:center;justify-content:center;
+    flex-wrap:wrap;gap:0.4rem
+  }
+  .lyric-blank{
+    display:inline-block;border-bottom:2px solid var(--rose);
+    min-width:110px;text-align:center;position:relative
+  }
+  .blank-input{
+    background:transparent;border:none;outline:none;
+    font-family:'Cormorant Garamond',serif;font-size:inherit;
+    font-style:italic;color:var(--rose-light);
+    text-align:center;width:100%;letter-spacing:0.08em;
+    text-transform:uppercase
+  }
+  .blank-input::placeholder{color:rgba(200,87,106,0.35);font-size:0.85em}
+
+  .lyric-credit{
+    font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;
+    color:rgba(200,87,106,0.45);margin-top:1.2rem
+  }
+
+  .unlock-btn{
+    background:transparent;
+    border:1px solid rgba(200,87,106,0.5);
+    border-radius:50px;padding:0.85rem 3rem;
+    color:var(--rose-light);font-family:'Jost',sans-serif;
+    font-size:0.82rem;letter-spacing:0.18em;text-transform:uppercase;
+    cursor:pointer;transition:all 0.4s ease;
+    margin-top:0.5rem
+  }
+  .unlock-btn:hover{background:rgba(200,87,106,0.15);border-color:var(--rose);color:var(--cream)}
+
+  .lock-error{
+    font-size:0.8rem;color:var(--rose);margin-top:1rem;
+    min-height:1.2rem;letter-spacing:0.05em;
+    animation:shake 0.4s ease
+  }
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+  /* ── TRANSITION OVERLAY ── */
+  #transition{
+    position:fixed;inset:0;background:var(--dark);
+    z-index:999;opacity:0;pointer-events:none;
+    transition:opacity 0.6s ease
+  }
+  #transition.show{opacity:1;pointer-events:all}
+
+  /* ══════════════════════════════
+     NAV
+  ══════════════════════════════ */
+  nav{
+    position:sticky;top:0;z-index:100;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:1.2rem 2.5rem;
+    background:rgba(14,6,8,0.85);
+    backdrop-filter:blur(12px);
+    border-bottom:1px solid rgba(200,87,106,0.12);
+
+  }
+  .nav-logo{
+    font-family:'Cormorant Garamond',serif;font-size:1.1rem;
+    font-style:italic;color:var(--rose-light);letter-spacing:0.05em
+  }
+  .nav-links{display:flex;gap:0.3rem}
+  .nav-btn{
+    background:transparent;border:none;
+    font-family:'Jost',sans-serif;font-size:2.55rem;
+    letter-spacing:0.14em;text-transform:uppercase;
+    color:rgba(240,221,226,0.55);padding:0.5rem 1rem;
+    cursor:pointer;border-radius:6px;transition:all 0.3s;
+    position:relative
+  }
+  .nav-btn::after{
+    content:'';position:absolute;bottom:0;left:50%;
+    width:0;height:1px;background:var(--rose);
+    transition:all 0.3s;transform:translateX(-50%)
+  }
+  .nav-btn:hover{color:var(--cream)}
+  .nav-btn.active-nav{color:var(--rose-light)}
+  .nav-btn.active-nav::after{width:60%}
+
+  /* ══════════════════════════════
+     MUSIC PLAYER
+  ══════════════════════════════ */
+  #player{
+    position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);
+    z-index:200;
+    background:rgba(20,8,12,0.92);
+    border:1px solid rgba(200,87,106,0.25);
+    border-radius:50px;
+    padding:0.6rem 1.4rem;
+    display:none;align-items:center;gap:0.9rem;
+    backdrop-filter:blur(16px);
+    min-width:260px;justify-content:center
+  }
+  #player.visible{display:flex}
+  .player-song{
+    font-size:0.72rem;letter-spacing:0.1em;
+    color:var(--rose-light);white-space:nowrap
+  }
+  .player-song span{color:rgba(240,221,226,0.45)}
+  .player-ctrl{
+    background:rgba(200,87,106,0.15);border:1px solid rgba(200,87,106,0.3);
+    border-radius:50%;width:30px;height:30px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;transition:all 0.3s;font-size:0.7rem;color:var(--rose-light)
+  }
+  .player-ctrl:hover{background:rgba(200,87,106,0.3)}
+  .player-note{font-size:14px;animation:pulse-note 1.5s ease-in-out infinite}
+  @keyframes pulse-note{0%,100%{opacity:0.5;transform:scale(1)}50%{opacity:1;transform:scale(1.2)}}
+
+  /* ══════════════════════════════
+     LETTER PAGE
+  ══════════════════════════════ */
+  #letter-page{padding-bottom:6rem}
+
+  .letter-hero{
+    text-align:center;padding:5rem 2rem 4rem;
+    border-bottom:1px solid rgba(200,87,106,0.1)
+  }
+  .letter-tag{
+    font-size:0.7rem;letter-spacing:0.25em;text-transform:uppercase;
+    color:var(--rose);margin-bottom:1rem
+  }
+  .letter-hero-title{
+    font-family:'Cormorant Garamond',serif;
+    font-size:clamp(2.5rem,7vw,4.5rem);
+    font-weight:300;font-style:italic;
+    color:var(--cream);line-height:1.1;margin-bottom:1.5rem
+  }
+  .letter-hero-title em{color:var(--rose-light)}
+  .letter-hero-sub{
+    font-size:0.8rem;letter-spacing:0.15em;text-transform:uppercase;
+    color:rgba(240,221,226,0.4)
+  }
+
+  .letter-body-wrap{
+    max-width:640px;margin:0 auto;padding:4rem 2rem;
+    background-color: rgba(255, 255, 255, 0.774); /* fallback for older browsers */
+    background-image: radial-gradient(circle at 20px 20px, rgba(200,87,106,0.05) 2px, transparent 2px);
+    background-size: 40px 40px;
+    border-radius:12px;position:relative;z-index:1;
+    border:1px solid rgba(200, 87, 106, 0.774)
+  }
+
+  .letter-seal{
+    text-align:center;margin-bottom:1rem;
+    font-size:2rem;opacity:0.6
+  }
+  .salutation{
+    font-family:'Cormorant Garamond',serif;font-size:1.8rem;
+    font-style:italic;color:black;margin-bottom:2rem
+  }
+  .letter-p{
+    font-family:'Cormorant Garamond',serif;font-size:1.31rem;
+    font-weight:400;line-height:2;color:#000000;
+    margin-bottom:1.8rem
+  }
+  .letter-p em{color:var(--rose);font-style:italic}
+  .letter-p strong{color:var(--rose-light);font-weight:400}
+  .letter-sign{
+    font-family:'Cormorant Garamond',serif;font-size:1.2rem;
+    font-style:italic;color:var(--rose-light);
+    text-align:right;margin-top:2.5rem
+  }
+
+  .divider{
+    display:flex;align-items:center;gap:1rem;
+    margin:3rem 0;opacity:0.25
+  }
+  .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--rose)}
+  .divider-dot{width:4px;height:4px;border-radius:50%;background:var(--rose)}
+
+  /* ══════════════════════════════
+     GALLERY PAGE
+  ══════════════════════════════ */
+  #gallery-page{padding-bottom:6rem}
+
+  .gallery-hero{
+    text-align:center;padding:5rem 2rem 3rem;
+    border-bottom:1px solid rgba(200,87,106,0.1)
+  }
+  .gallery-hero-title{
+    font-family:'Cormorant Garamond',serif;
+    font-size:clamp(2rem,6vw,3.8rem);
+    font-weight:300;font-style:italic;
+    color:var(--cream);line-height:1.2;margin-bottom:0.8rem
+  }
+  .gallery-hero-sub{
+    font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;
+    color:rgba(240,221,226,0.4)
+  }
+
+  .gallery-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+    gap:1rem;padding:2.5rem 2rem;
+    max-width:900px;margin:0 auto
+  }
+  .gallery-item{
+    border-radius:12px;overflow:hidden;
+    background:var(--dark3);
+    border:1px solid rgba(200,87,106,0.12);
+    cursor:pointer;transition:all 0.4s ease;
+    aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+    position:relative
+  }
+  .gallery-item:hover{transform:scale(1.03);border-color:rgba(200,87,106,0.4)}
+  .gallery-item img{width:265px;height:265px;object-fit:cover;display:block;}
+  .gallery-placeholder{
+    display:flex;flex-direction:column;align-items:center;
+    gap:0.8rem;padding:1.5rem;text-align:center
+  }
+  .placeholder-icon{font-size:2rem;opacity:0.3}
+  .placeholder-text{
+    font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;
+    color:rgba(240,221,226,0.25)
+  }
+
+  .gallery-note{
+    text-align:center;padding:0 2rem 3rem;
+    font-family:'Cormorant Garamond',serif;font-size:1rem;
+    font-style:italic;color:rgba(240,221,226,0.35);
+    max-width:480px;margin:0 auto
+  }
+
+  /* Upload btn */
+  .upload-area{
+    text-align:center;padding:0 2rem 2rem;max-width:640px;margin:0 auto
+  }
+  .upload-label{
+    display:inline-block;cursor:pointer;
+    border:1px dashed rgba(200,87,106,0.35);
+    border-radius:12px;padding:1.2rem 2.5rem;
+    color:rgba(240,221,226,0.4);font-size:0.78rem;
+    letter-spacing:0.15em;text-transform:uppercase;
+    transition:all 0.3s
+  }
+  .upload-label:hover{border-color:var(--rose);color:var(--rose-light)}
+  #photo-upload{display:none}
+
+  /* Lightbox */
+  #lightbox{
+    position:fixed;inset:0;background:rgba(10,4,6,0.95);
+    z-index:500;display:none;align-items:center;justify-content:center;
+    padding:2rem
+  }
+  #lightbox.open{display:flex}
+  #lightbox img{max-width:90vw;max-height:85vh;border-radius:8px;object-fit:contain}
+  .lightbox-close{
+    position:absolute;top:1.5rem;right:2rem;
+    background:none;border:none;color:var(--rose-light);
+    font-size:1.8rem;cursor:pointer;opacity:0.7
+  }
+  .lightbox-close:hover{opacity:1}
+
+  /* ── ROSES FLOAT ── */
+  .rose-particle{
+    position:fixed;pointer-events:none;z-index:0;
+    font-size:1rem;animation:rose-fall linear forwards;opacity:0
+  }
+  @keyframes rose-fall{
+    0%{opacity:0;transform:translateY(-20px) rotate(0deg)}
+    10%{opacity:0.6}
+    90%{opacity:0.4}
+    100%{opacity:0;transform:translateY(100vh) rotate(360deg)}
+  }
+
+  /* ── REVEAL ANIMATION ── */
+  .reveal{opacity:0;transform:translateY(24px);transition:opacity 0.8s ease,transform 0.8s ease}
+  .reveal.in{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+<div id="transition"></div>
+
+<!-- ══ LOCK PAGE ══ -->
+<div id="lock-page" class="page active">
+  <div class="lock-top">
+    <div class="lock-icon">🌹</div>
+    <p class="lock-intro">A secret, just for you</p>
+    <h1 class="lock-title">Fill in the missing word<br>to open my heart</h1>
+  </div>
+
+  <div class="lyric-card">
+    <p class="lyric-hint">✦ Complete the lyric ✦</p>
+    <div class="lyric-line">
+      <span>Was there a</span>
+      <span class="lyric-blank">
+        <input class="blank-input" id="code-input" type="text" placeholder="_ _ _ _ _ _ _ _" maxlength="12" autocomplete="off" spellcheck="false">
+      </span>
+      <span>waiting for us</span>
+    </div>
+    <div class="lyric-line" style="margin-top:0.3rem">
+      <span>where in a world where I was yours?</span>
+    </div>
+    <p class="lyric-credi">— Ben&amp;Ben · Lifetime</p>
+  </div>
+
+  <button class="unlock-btn" onclick="checkCode()">Open ✦</button>
+  <p class="lock-error" id="lock-error"></p>
+</div>
+
+<!-- ══ LETTER PAGE ══ -->
+<div id="letter-page" class="page">
+  <nav>
+    <div class="nav-logo">for you, always</div>
+    <div class="nav-links">
+      <button class="nav-btn active-nav" onclick="showPage('letter')">Letter</button>
+      <button class="nav-btn" onclick="showPage('gallery')">Gallery</button>
+    </div>
+  </nav>
+
+  <div class="letter-hero reveal">
+    <p class="letter-tag">✦ an open heart ✦</p>
+    <h1 class="letter-hero-title">A letter I've been<br>meaning to <em>write</em></h1>
+    <p class="letter-hero-sub">written with every bit of courage I have</p>
+  </div>
+
+  <div class="letter-body-wrap">
+    <div class="letter-seal reveal">❧</div>
+
+    <p class="salutation reveal">My dearest,</p>
+
+    <p class="letter-p reveal">
+      I’m willing to take this thing slowly because <em>I want this to go the right way without confusion and mixed signals</em>, but I also want to be real with you. Maybe this is also a sign that I should finally say my unspoken thoughts? hahhahaha
+    </p>
+
+    <div class="divider reveal"><div class="divider-dot"></div></div>
+
+    <p class="letter-p reveal">
+      Sometimes I get confused, or even a bit jealous, or ambot lang hahaha. It’s just that <em>I notice how confident and comfortable you are around other people, especially your guy(straight) friends</em>. But <em>when it comes to me, I feel like you get shy or aren’t fully comfortable yet</em> bisan dugay dugay nata nag ka close?😂 Hahhahaha
+    </p>
+
+    <p class="letter-p reveal">
+      
+    </p>
+
+    <div class="divider reveal"><div class="divider-dot"></div></div>
+
+    <p class="letter-p reveal">
+      Akong ganahan lang noh Hhahahhaha, when we’re together, please <em>ayaw kaulaw ug kaikog sa akoa</em>. I’d like you to <em>treat me the same way you treat your friends</em>, Like being comfortable coming close to me, asking favors if you need anything like ngano adto ka mo ask ug tabang nila nga naa man ko Hhahahaha. And lastly maiii, please <em>don’t let me overthink</em> and I promise I wont give up on you, be untouchable and reserve yourself for people you truly love and feel most comfortable, and dont be touchy with other guys please, mag selos jud ko promise😭 bisan ako panang pinakasuod na amigo. I dont know if valid bani but gusto lang nako e express akong na feel.🥺
+    </p>
+    <div class="divider reveal"><div class="divider-dot"></div></div>
+    <p class="letter-p reveal">
+      Also basin naa kay ginakeep nga di nimo ganahan nako, <em>I want us to be honest rather than guessing</em>, and di jud nako na ikalain e sulti nimo ang wa nimo nauyunan sa akoa, I’m willing to grow and be better. Don’t just be someone I can trust or lean on, be someone <em>who helps me become a better person and keeps me away from the bad influences, wrong things, and wrong choices</em>. Mao gani ingon nila, " A man is meant to lead but a woman can't follow a man who doesn't know where he is going. " sakto?? hahahha
+
+      If anything I said makes you uncomfortable, please tell me.
+    </p>
+
+    <div class="divider reveal"><div class="divider-dot"></div></div>
+
+
+    <p class="letter-sign reveal">
+      — Yours, if you'll have me 🌹
+    </p>
+  </div>
+</div>
+
+<!-- ══ GALLERY PAGE ══ -->
+<div id="gallery-page" class="page">
+  <nav>
+    <div class="nav-logo">for you, always</div>
+    <div class="nav-links">
+      <button class="nav-btn" onclick="showPage('letter')">Letter</button>
+      <button class="nav-btn active-nav" onclick="showPage('gallery')">Gallery</button>
+    </div>
+  </nav>
+
+  <div class="gallery-hero reveal">
+    <p class="letter-tag">✦ moments I treasure ✦</p>
+    <h1 class="gallery-hero-title">Our little<br>universe</h1>
+    <p class="gallery-hero-sub">photos that make me smile when I think of you</p>
+  </div>
+
+  <div class="upload-area">
+    <label class="upload-label" for="photo-upload">
+      ✦ Add your photos here ✦
+    </label>
+    <input type="file" id="photo-upload" accept="image/*" multiple onchange="addPhotos(event)">
+  </div>
+
+  <div class="gallery-grid" id="gallery-grid">
+    <!-- placeholder slots -->
+    <div class="gallery-item" id="slot-1">
+      <div class="gallery-placeholder">
+        <div class="placeholder-icon"><img src="d6a21621-61c1-47e1-ad2e-29b7067184bf.jpg"></div>
+      </div>
+    </div>
+    <div class="gallery-item" id="slot-2">
+      <div class="gallery-placeholder">
+        <div class="placeholder-icon"><img src="af8ea039-f4db-465f-bce9-f461f9c4cfe2.jpg"></div>
+      </div>
+    </div>
+    <div class="gallery-item" id="slot-3">
+      <div class="gallery-placeholder">
+        <div class="placeholder-icon"><img src="cb8faca4-d6bb-4275-bb28-7e3b40be9941.jpg"></div>
+      </div>
+    </div>
+    <div class="gallery-item" id="slot-4">
+      <div class="gallery-placeholder">
+        <div class="placeholder-icon"><img src="acd5ae19-274a-40b4-b593-2bca99b6a816.jpg">
+        </div>
+      </div>
+    </div>
+    <div class="gallery-item" id="slot-5">
+      <div class="gallery-placeholder">
+        <div class="placeholder-icon"><img src="7241bd03-ebbd-4f55-9a47-927003c69f29.jpg"></div>
+      </div>
+    </div>
+    <div class="gallery-item" id="slot-6">
+      <div class="gallery-placeholder">
+        <div class="placeholder-icon"><img src="dff61af5-b400-4e9c-a18d-ea1eef5022ae.jpg"></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="gallery-note reveal">
+    "Every photo is a secret kept by light —<br>
+    this one keeps you."
+  </p>
+</div>
+
+<!-- Music Player -->
+<div id="player">
+  <div class="player-note">♪</div>
+  <div class="player-song">Lifetime <span>· Ben&amp;Ben</span></div>
+  <div class="player-ctrl" id="play-btn" onclick="toggleMusic()" title="Play/Pause">▶</div>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<script>
+const SECRET = 'LIFETIME';
+let musicStarted = false;
+let isPlaying = false;
+let audio = null;
+
+/* ── STARS ── */
+(function(){
+  const c = document.getElementById('stars-canvas');
+  const ctx = c.getContext('2d');
+  let stars = [];
+  function resize(){c.width=window.innerWidth;c.height=window.innerHeight}
+  resize();
+  window.addEventListener('resize',resize);
+  for(let i=0;i<120;i++){
+    stars.push({
+      x:Math.random()*c.width, y:Math.random()*c.height,
+      r:Math.random()*1.4+0.2, a:Math.random(),
+      da:(Math.random()-0.5)*0.008
+    });
+  }
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    stars.forEach(s=>{
+      s.a+=s.da;
+      if(s.a<=0||s.a>=1)s.da*=-1;
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,240,244,${s.a})`;ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ── CHECK CODE ── */
+function checkCode(){
+  const val = document.getElementById('code-input').value.trim().toUpperCase();
+  const err = document.getElementById('lock-error');
+  if(val === SECRET){
+    err.textContent = '';
+    unlock();
+  } else {
+    err.textContent = 'That\'s not quite it... listen to the song again 🌹';
+    err.style.animation='none';
+    setTimeout(()=>err.style.animation='',10);
+  }
+}
+
+document.getElementById('code-input').addEventListener('keydown',e=>{
+  if(e.key==='Enter') checkCode();
+});
+
+/* ── UNLOCK ── */
+function unlock(){
+  const overlay = document.getElementById('transition');
+  overlay.classList.add('show');
+  setTimeout(()=>{
+    document.getElementById('lock-page').classList.remove('active');
+    document.getElementById('letter-page').classList.add('active');
+    document.getElementById('player').classList.add('visible');
+    overlay.classList.remove('show');
+    setTimeout(()=>{ revealElements(); startMusic(); roseRain(); },400);
+  },700);
+}
+
+/* ── MUSIC ── */
+function startMusic(){
+  if(musicStarted) return;
+  musicStarted = true;
+  audio = new Audio('Ben&Ben - Lifetime (Lyrics).mp3');
+  /* ↑ REPLACE this URL with the actual mp3 file of Ben&Ben - Lifetime */
+  audio.loop = true;
+  audio.volume = 0.45;
+  audio.play().then(()=>{
+    isPlaying = true;
+    document.getElementById('play-btn').textContent = '⏸';
+  }).catch(()=>{
+    document.getElementById('play-btn').textContent = '▶';
+  });
+}
+
+function toggleMusic(){
+  if(!audio) return;
+  if(isPlaying){ audio.pause(); isPlaying=false; document.getElementById('play-btn').textContent='▶'; }
+  else { audio.play(); isPlaying=true; document.getElementById('play-btn').textContent='⏸'; }
+}
+
+/* ── PAGES ── */
+function showPage(page){
+  document.getElementById('letter-page').classList.remove('active');
+  document.getElementById('gallery-page').classList.remove('active');
+  document.getElementById(page+'-page').classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    b.classList.toggle('active-nav', b.textContent.toLowerCase().includes(page));
+  });
+  setTimeout(revealElements, 100);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ── REVEAL ── */
+function revealElements(){
+  const els = document.querySelectorAll('.reveal:not(.in)');
+  els.forEach((el,i)=>{
+    setTimeout(()=>el.classList.add('in'), i*120);
+  });
+}
+
+/* ── ROSE RAIN ── */
+function roseRain(){
+  const emojis=['🌹','🌸','✨','💕','🌷'];
+  let count=0;
+  const interval = setInterval(()=>{
+    if(count>28){clearInterval(interval);return}
+    count++;
+    const p=document.createElement('div');
+    p.className='rose-particle';
+    p.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    p.style.cssText=`left:${Math.random()*100}vw;top:0;animation-duration:${4+Math.random()*4}s;font-size:${0.8+Math.random()*1.2}rem`;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),8000);
+  },200);
+}
+
+/* ── GALLERY ── */
+function addPhotos(e){
+  const files = Array.from(e.target.files);
+  const grid = document.getElementById('gallery-grid');
+  files.forEach(file=>{
+    const url = URL.createObjectURL(file);
+    const slots = grid.querySelectorAll('.gallery-item');
+    let placed = false;
+    slots.forEach(slot=>{
+      if(!placed && slot.querySelector('.gallery-placeholder')){
+        slot.innerHTML = `<img src="${url}" alt="memory" onclick="openLightbox('${url}')">`;
+        placed = true;
+      }
+    });
+    if(!placed){
+      const item = document.createElement('div');
+      item.className='gallery-item';
+      item.innerHTML=`<img src="${url}" alt="memory" onclick="openLightbox('${url}')">`;
+      grid.appendChild(item);
+    }
+  });
+}
+
+function openLightbox(src){
+  document.getElementById('lightbox-img').src=src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+}
+document.getElementById('lightbox').addEventListener('click',function(e){
+  if(e.target===this) closeLightbox();
+});
+</script>
+</body>
+</html>
